@@ -1,1 +1,1 @@
-## A Trojan Horse is Entering Ethereum Core
+## Trojan Horse Ethereum Core
