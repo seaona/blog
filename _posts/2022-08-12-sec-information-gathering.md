@@ -5,3 +5,4 @@ CeWL spiders a given URL, up to a specified depth, and returns a list of words w
 
 `cewl -m 8 -e --email_file ./emails.txt -d 0 -w ./diccio https://twitter.com/hackbysecurity?lang=es`
 
+![cewl](../_media/cewl.gif)
