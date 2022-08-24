@@ -9,7 +9,7 @@ CeWL spiders a given URL, up to a specified depth, and returns a list of words w
 
 `cewl -m 8 -e --email_file ./emails.txt -d 0 -w ./diccio https://twitter.com/hackbysecurity?lang=es`
 
-![cewl](../_media/cewl.gif)
+![cewl](../_media/cewl)
 
 ### 2. Common User Passwords Profiler (CUPP)
 Generate commmon passwords dictionaries based on personal information from the target. You can also import and mutate existing dictionaries.
