@@ -9,14 +9,14 @@ CeWL spiders a given URL, up to a specified depth, and returns a list of words w
 
 `cewl -m 8 -e --email_file ./emails.txt -d 0 -w ./diccio https://twitter.com/hackbysecurity?lang=es`
 
-![cewl](../_media/cewl)
+![cewl](https://raw.githubusercontent.com/seaona/blog/main/_media/cewl.gif)
 
 ### 2. Common User Passwords Profiler (CUPP)
 Generate commmon passwords dictionaries based on personal information from the target. You can also import and mutate existing dictionaries.
 
 `python3 cupp.py -i`
 
-![cewl](../_media/cupp.gif)
+![cupp](https://raw.githubusercontent.com/seaona/blog/main/_media/cupp.gif)
 
 Download from source: [cupp](https://github.com/Mebus/cupp.git)
 
@@ -27,7 +27,7 @@ Configure API Keys:
 Run command:
 `theHarvester -d hackbysecurity.com -s -b google -n -f ./report`
 
-![cewl](../_media/the-harvester.gif)
+![harvester](https://raw.githubusercontent.com/seaona/blog/main/_media/the-harvester.gif)
 
 - `--dns-lookup`: check to which IP address corresponds the domain name and will look at the range of IP addresses if there are subdomains.
 Direct and inverse domain resolutions
@@ -36,6 +36,6 @@ Direct and inverse domain resolutions
 Perform whois, subdomaind and mails search.
 `dmitry -w hackbysecurity.com -n -s -e`
 
-![dmitry](../_media/dmitry.png)
+![dmitry](https://raw.githubusercontent.com/seaona/blog/main/_media/dmitry.png)
 
 Avoid port scanning without permissions.
