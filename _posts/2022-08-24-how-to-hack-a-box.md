@@ -32,6 +32,7 @@ Direct and inverse domain resolutions
     `dmitry -w hackbysecurity.com -n -s -e`
 
 ## Port and Vulnerability Scanning
+### Network Discovery
 - **Wireshark**: packet sniffer to visualize traffic in our network interface. Passive method
     - eth0: local wired network
         - ARP packages
@@ -55,3 +56,39 @@ Direct and inverse domain resolutions
 - NetBIOS requests
     
     `nbtscan -r 10.0.2.0/24`
+
+### Port Scanning
+- **TCP CONN**: a complete connection. 
+    - Send request to a closed port (ie 20). Response is connection refused [RST, ACK].
+
+        `nc 10.0.2.4 20`
+
+    - Send request to an open port. Response is [SYN, ACK]
+
+        `nc 10.0.2.4 21`
+
+- **TCP SYN**: similar to TCP CONN but once get's a reply, it aborts the connection
+    - Send request, response is [SYN, ACK]
+
+        `hping3 10.0.2.4 --scan 20 -S`
+
+- **TCP Null**: use only in Linux/Unix. Send an empty request. If there is no reply, port is open or filtered by a firewall. If returns an error, port is closed
+
+    `hping3 10.0.2.4 --scan 20 -Y`
+
+- **TCP Fin**: use only in Linux/Unix.  Send a request with End connection value. If no answer, port is open. If error, port is closed or filtered
+
+    `hping3 10.0.2.4 --scan 20 -F`
+
+- **TCP XMAS**: use only in Linux/Unix. Similar to Fin, we receive a RST package if port is closed. We send FIN, URG and PUSH
+
+    `hping3 10.0.2.4 --scan 20 -UPF`
+
+- **TCP ACK**: looks for ports that are filtered by a firewall. When we send an ACK, if we receive reply it resets connection (RST). If there is no reply, port is filtered by a firewall.
+
+    - `hping3 10.0.2.4 --scan 20 -A`
+
+- **UDP**: you may receive corrupted data (i.e. poor audio quality). Much faster than TCP. UDP header size is 8bytes (TCP is 16bytes). Scan takes longer than TCP
+
+   `hping3 10.0.2.4 --scan 20 -2` 
+
