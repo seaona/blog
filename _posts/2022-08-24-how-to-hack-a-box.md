@@ -1,4 +1,4 @@
-# My e2e Journey on How to Hack a Box
+# How to Hack a Box
 
 
 ## Information Gathering
@@ -32,3 +32,26 @@ Direct and inverse domain resolutions
     `dmitry -w hackbysecurity.com -n -s -e`
 
 ## Port and Vulnerability Scanning
+- **Wireshark**: packet sniffer to visualize traffic in our network interface. Passive method
+    - eth0: local wired network
+        - ARP packages
+        - DHCPv6 packages: with TCP/IP v6
+- **netdiscover**: send ARP packages actively or passively
+    
+    `netdiscover -i eth0 -r 10.0.2/24`
+
+- Check ARP tables from my machine `arp -a`. 
+- ARP requests: only works at local network level
+- ICMP requests: for exernal petitions, sent 1 package to a sequential network range 
+    
+    `for i in $(seq 3 254); do ping -c 1 10.0.2.$i; done`
+- DNS requests: 
+    1. Configure DNS servers include our target dns and ip address 
+        
+        `nano /etc/resolv.conf`
+    2. **wfuzz**: scan, choose a dictionary to use, ignore empty responses  
+        `wfuzz -Z -c -w /usr/share/wordlists/wfuzz/general/common.txt --hh=0 FUZZ.hackbysecurity.com`
+        - dictionary [secList](https://github.com/danielmiessler/SecLists/tree/master/Discovery/DNS): common subdomains we can use
+- NetBIOS requests
+    
+    `nbtscan -r 10.0.2.0/24`
