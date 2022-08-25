@@ -92,3 +92,35 @@ Direct and inverse domain resolutions
 
    `hping3 10.0.2.4 --scan 20 -2` 
 
+### Vulnerability Scanning
+- Vulnerability types
+    - Config: user, or pre-default configs
+    - Application: buffer overflow, SQL injections, XSS, etc.
+    - Design: inherent to the protocol or architecture
+
+1. Connect to the vulnerable system   
+    
+    `nc 10.0.2.4 21`
+2. Check response if has a vulnerability (ther eis exploit-db.com in kali)
+
+    `searchexploit vsFTPd 2.3.4`
+
+3. Try default configs (i.e. User anonymous for FTP services)
+    
+    `nc 10.0.2.4 21`
+    
+    `USER anonymous PASS `
+
+    `HELP`
+
+    `LIST`
+4. Gather server info
+
+    `curl -I http://10.0.2.4`
+
+    `searchexploit Apache 2.2.8`
+
+5. Check exploit info
+
+    `cat /usr/share/ex`loitabledb/exploits/linux/dos/41769.txt`
+
