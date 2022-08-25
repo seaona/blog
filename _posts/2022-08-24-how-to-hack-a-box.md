@@ -101,7 +101,7 @@ Direct and inverse domain resolutions
 1. Connect to the vulnerable system   
     
     `nc 10.0.2.4 21`
-2. Check response if has a vulnerability (ther eis exploit-db.com in kali)
+2. Check response if has a vulnerability (there is exploit-db.com in kali)
 
     `searchexploit vsFTPd 2.3.4`
 
@@ -122,5 +122,46 @@ Direct and inverse domain resolutions
 
 5. Check exploit info
 
-    `cat /usr/share/ex`loitabledb/exploits/linux/dos/41769.txt`
+    `cat /usr/share/exploitabledb/exploits/linux/dos/41769.txt`
 
+### HPING
+- Purpose: net discover, port and service analysis
+- ICMP for net discovery: add net interface (eth0, wlan0...), random for scanning order, send ping ARP packages, for discover active machines:
+
+    `hping3 -1 -I eth0 --rand-dest 10.0.2.x`
+
+- Scan single port
+
+    `hping3 -1 -I eth0 -p 21 10.0.2.x`
+
+- Scan a range of ports, with verbosity
+
+    `hping3 -I eth0 -8 0-10000 -S -V 10.0.2.4`
+
+- Search for specific ports that reply (5840) - are open ports:
+
+    `hping3 -I eth0 -8 0-10000 -S -V 10.0.2.4 | grep "5840`
+
+    ![hping3](../_media/hping3-grep.png)
+
+- ICMP: send ping. Thanks to ttl, we can know which Operating System is operating (ttl=64 is linux).
+
+    `ping -c 1 10.0.2.4`
+
+    ![ping](../_media/ping-ttl.png)
+
+    - **Time To Live (TTL)**: is a timer value included in packets sent over networks that tells the recipient how long to hold or use the packet before discarding and expiring the data (packet). TTL values are different for different Operating Systems. So, you can determine the OS based on the TTL value
+
+- Supplant an identity by IP address to avoid any filter, using the flag `a`. You can check in Wireshark how origin is now 10.0.2.1:
+
+    `hping3 -I eth0 -V -a 10.0.2.1 -p 80 -S 10.0.2.4`
+
+    `hping3 -I eth0 -V --rand-source -p 80 -S 10.0.2.4`
+
+- See TCP sequence used- Netbios port 139 or 80, so if we see a pattern we can impersonate next package:
+
+    `hping3 -I eth0 -Q -p 139 -S 10.0.2.4`
+
+- Fragment the packages, so it won't interpret which info has and hosted destiny will re-build it.
+
+    `hping3 -I eth0 -f --mtu 8 -p 80 -S 10.0.2.4`
