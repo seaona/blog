@@ -165,3 +165,31 @@ Direct and inverse domain resolutions
 - Fragment the packages, so it won't interpret which info has and hosted destiny will re-build it.
 
     `hping3 -I eth0 -f --mtu 8 -p 80 -S 10.0.2.4`
+
+### NMAP
+- Discover tasks. Will send packages (ARP, DNS (ns-lookup) ICMP, TCP/IPv6).
+
+    `nmap -sn 10.0.2.0/24`
+
+- If we want to work with another net interface (instead of eth0) we do. sS syn still. We see which ports are open.  First verify host is active (ARP), then host name (DNS), then port scanning (TCP)
+
+    `nmap -e eth0 -sS 10.0.2.4`
+
+- See on Wireshark if we receive a SYN ACK (connect - port open) or port closed (RST, ACK)
+- Set scanning range. In a remote machine there are 65.536 ports. We can omit the ping (-Pn) as we've done it on the previous steps. You can avoid the DNS lookup (-n)
+
+    `nmap -e eth0 -sS -p 0-65535 -Pn -n 10.0.2.4`
+
+- We can see which type of services are on each port adn version
+
+    `nmap -e eth0 -sS -sV -p 0-65535 -Pn -n 10.0.2.4`
+
+- Export info in the format we want  (A - all, X -xml)
+
+    `nmap -e eth0 -sS -sV -p 0-65535 -Pn -n -oX ./report 10.0.2.4`
+
+- Use [nmap script engine](https://nmap.org/book/man-nse.html) to check vulnerabilities in those services
+
+    `nmap -e eth0 -sS -sV -p 21 -Pn -n -oX ./report21 --script=exploit,vuln 10.0.2.4`
+
+    ![ping](https://raw.githubusercontent.com/seaona/blog/main/_media/nmap-scripts.png)
