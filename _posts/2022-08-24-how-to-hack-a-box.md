@@ -142,13 +142,13 @@ Direct and inverse domain resolutions
 
     `hping3 -I eth0 -8 0-10000 -S -V 10.0.2.4 | grep "5840`
 
-    ![hping3](../_media/hping3-grep.png)
+    ![hping3](https://raw.githubusercontent.com/seaona/blog/main/_media/hping3-grep.png)
 
 - ICMP: send ping. Thanks to ttl, we can know which Operating System is operating (ttl=64 is linux).
 
     `ping -c 1 10.0.2.4`
 
-    ![ping](../_media/ping-ttl.png)
+    ![ping](https://raw.githubusercontent.com/seaona/blog/main/_media/ping-ttl.png)
 
     - **Time To Live (TTL)**: is a timer value included in packets sent over networks that tells the recipient how long to hold or use the packet before discarding and expiring the data (packet). TTL values are different for different Operating Systems. So, you can determine the OS based on the TTL value
 
