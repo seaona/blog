@@ -17,8 +17,7 @@ Here is an example of a warning in VSC:
 
 **Hardhat**
 
-This repository is built on top of [Hardhat](https://hardhat.org/). For that reason, we'll need to use the most relevants commands for running a local node, compiling and deploying contracts, as well as running test.
-This last part is specially important, as it is where we are going to include our exploits.
+This repository is built on top of [Hardhat](https://hardhat.org/).
 
 **Codebase**
 
@@ -47,22 +46,59 @@ yarn hardhat test test/*challenge-folder*/*challenge-file*
 
 ### Setup
 
-For completing the challenges we don't necessarily need to deploy any contract directly. Using the test scripts is sufficient. However, I highly recommend doing so, in parallel to our investigations. Making all our thinking process step by step manually, sometimes can help to realize things we have missed by simply writting code. In addition to that, you'll also be learning the commands for the deployment process - which is an essential step for any auditor.
+For completing the challenges we don't necessarily need to deploy any contract directly. Using the test scripts is sufficient.
 
-1. Open a terminal inside the project folder and run a local node with hardhat:
-```
-npx hardhat node
-```
+1. Open a terminal inside the project folder
 
-2. Create a deploy folder and script
+2. Run the first challenge script
 ```
-touch scripts/deploy.js
-```
-
-3. Deploy a contract on the local network
-```
-npx hardhat run --network localhost scripts/deploy.js
+yarn run unstoppable
 ```
 
 ## Challenge #1: Unstoppable
+The Unstoppable challenge states the following:
+> There's a lending pool with a million DVT tokens in balance, offering flash loans for free. If only there was a way to attack and stop the pool from offering flash loans... You start with 100 DVT tokens in balance.
+
+There are 2 contracts:
+- UnstoppableLender.sol
+- UnstoppableReceiver.sol
+
+![Unstoppable Lender](https://raw.githubusercontent.com/seaona/blog/main/_media/unstoppable-lender.png)
+
+![Unstoppable Receiver](https://raw.githubusercontent.com/seaona/blog/main/_media/unstoppable-receiver.png)
+
+Our goal is to break the flash loans functionality from the pool, so let's start by analizing the `flashLoan`function, to see what we get from there.
+
+On the `flashLoan(uint256 borrowAmount)` function we can see that it is required that the `poolBalance` equals the `balanceBefore` value. However, where do these values come from?
+
+```
+ assert(poolBalance == balanceBefore);
+```
+
+A couple of lines above, we can see that the `balanceBefore` value is taken using the `balanceOf` function from the token contract.
+
+```
+uint256 balanceBefore = damnValuableToken.balanceOf(address(this));
+```
+
+On the other hand, the `poolBalance` value is a contract variable updated every time we call the `depositTokens(uint256 amount)` function.
+
+Does this ring a bell? As you might be realizing, there is a way in which we can make the assertion of balances `false`, which is, sending some tokens to the pool directly by using the token function `transfer` instead of `depositTokens`.
+
+If we do this, the assertion won't be no longer true, and it won't be possible to execute any other flashloans, as the variable `poolBalance` won't be updated.
+
+So the exploit looks like this. On the `test/unstoppable/unstoppable.challange.js`, include the following code, which performs a transfer to the pool address
+```
+it('Exploit', async function () {
+    /** CODE YOUR EXPLOIT HERE */
+    const poolAddr = await this.pool.address
+    await this.token.transfer(poolAddr,1) 
+});
+```
+Now, run the script with `yarn run unstoppable` and see how we pass the challenge.
+
+![Unstoppable Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/unstoppable-challenge.png)
+
+
+Congrats!!
 
