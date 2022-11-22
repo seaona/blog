@@ -1,5 +1,5 @@
 # Damn Vulnerable DeFi
-In this post, we are going to review the Damn Vulnerable DeFi challenges one by one. As I go through the process of solving them, the notes I take and the steps I perform for reaching the final solution.
+In this post, we are going to review the Damn Vulnerable DeFi challenges one by one. We are going to analyze the contracts and explore and hack their vulnerabilities.
 
 On [damnvulnerabledefi](https://www.damnvulnerabledefi.xyz/) page you can check the instructions for getting started. Let's go!
 
@@ -7,11 +7,11 @@ On [damnvulnerabledefi](https://www.damnvulnerabledefi.xyz/) page you can check 
 ### Tools and Environment
 **IDE: Visual Studio Code + Solidity Visual Auditor**
 
-I'm going to use Visual Studio Code for taking advantage of one particular VSC extension: the [Solidity Visual Auditor](https://marketplace.visualstudio.com/items?itemName=tintinweb.solidity-visual-auditor), developed by Consensys Diligence.
+We are going to use Visual Studio Code for taking advantage of one particular VSC extension: the [Solidity Visual Auditor](https://marketplace.visualstudio.com/items?itemName=tintinweb.solidity-visual-auditor), developed by Consensys Diligence.
 
-This extension will assist us during the challenges, by providing code insights, syntax and semantic highlighting,etc.
+This extension will assist us during the challenges, by providing code insights, syntax and semantic highlighting, and visual graphs which represent contracts and interactions.
 
-Here is an example of a warning in VSC:
+Here is an example of a warning in VSC, highlighting an external call:
 
 ![Solidity Visual Developer](https://raw.githubusercontent.com/seaona/blog/main/_media/solidity-visual-dev.png)
 
@@ -46,7 +46,7 @@ yarn hardhat test test/*challenge-folder*/*challenge-file*
 
 ### Setup
 
-For completing the challenges we don't necessarily need to deploy any contract directly. Using the test scripts is sufficient.
+For completing the challenges we'll just need to open the challenge scripts on the test folder and include our hack. For validating we simply need to call the script and, voilà!
 
 1. Open a terminal inside the project folder
 
@@ -54,6 +54,7 @@ For completing the challenges we don't necessarily need to deploy any contract d
 ```
 yarn run unstoppable
 ```
+Now you'll see that the script will fail - as we haven't yet started to work on the challenge.
 
 ## Challenge #1: Unstoppable
 The Unstoppable challenge states the following:
@@ -63,11 +64,13 @@ There are 2 contracts:
 - UnstoppableLender.sol
 - UnstoppableReceiver.sol
 
+The contract diagrams generated with the Solidity Visual Auditor extension are the following:
+
 ![Unstoppable Lender](https://raw.githubusercontent.com/seaona/blog/main/_media/unstoppable-lender.png)
 
 ![Unstoppable Receiver](https://raw.githubusercontent.com/seaona/blog/main/_media/unstoppable-receiver.png)
 
-Our goal is to break the flash loans functionality from the pool, so let's start by analizing the `flashLoan`function, to see what we get from there.
+Our goal is to break the Flash Loan functionality from the pool, so it is no longer possible to perform another Flash Loan. Let's start by analizing the `flashLoan`function, to see what we get from there.
 
 On the `flashLoan(uint256 borrowAmount)` function we can see that it is required that the `poolBalance` equals the `balanceBefore` value. However, where do these values come from?
 
