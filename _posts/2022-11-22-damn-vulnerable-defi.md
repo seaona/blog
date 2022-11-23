@@ -148,3 +148,5 @@ We are going to impersonate the FlashLoanReceiver contract, by passing its addre
 The pool can perform this action 10 times, and this will drain all the receiver's funds (10ETH).
 
 There is a bonus for performing this in a single transaction. For that, we can setup a simple smart contract, that executes the 10x calls above.
+
+![Naive Receiver Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver-challenge.png)
