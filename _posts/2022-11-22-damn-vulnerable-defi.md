@@ -13,11 +13,15 @@ This extension will assist us during the challenges, by providing code insights,
 
 Here is an example of a warning in VSC, highlighting an external call:
 
-![Solidity Visual Developer](https://raw.githubusercontent.com/seaona/blog/main/_media/solidity-visual-dev.png)
+![Solidity Visual Developer](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/solidity-visual-dev.png)
+
+We can also generate visual graphs by utilizing Surya capabilities, embedded in the pluggin. We'll do this for every challenge, so we get a clear overview on the contracts we are hacking and the calls between them.
+
+![Solidity Visual Developer](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/surya-call-graph.png)
 
 **Hardhat**
 
-This repository is built on top of [Hardhat](https://hardhat.org/).
+The development environment we'll use is [Hardhat](https://hardhat.org/). It provides us with a rich testing environment which we'll be using for our hacks. It uses [Ethers.js](https://docs.ethers.io/v5/) library for smart contract interaction.
 
 **Codebase**
 
@@ -57,21 +61,25 @@ yarn run unstoppable
 Now you'll see that the script will fail - as we haven't yet started to work on the challenge.
 
 ## Challenge #1: Unstoppable
+### The Goal
 The Unstoppable challenge states the following:
 > There's a lending pool with a million DVT tokens in balance, offering flash loans for free. If only there was a way to attack and stop the pool from offering flash loans... You start with 100 DVT tokens in balance.
 
+Our goal is to break the Flash Loan functionality from the pool, so it is no longer possible to perform another Flash Loan. Let's start by analizing the `flashLoan`function, to see what we get from there.
+
+### Contract Call Graphs
 There are 2 contracts:
 - UnstoppableLender.sol
 - UnstoppableReceiver.sol
 
 The contract diagrams generated with the Solidity Visual Auditor extension are the following:
 
-![Unstoppable Lender](https://raw.githubusercontent.com/seaona/blog/main/_media/unstoppable-lender.png)
+![Unstoppable Lender](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-lender.png)
 
-![Unstoppable Receiver](https://raw.githubusercontent.com/seaona/blog/main/_media/unstoppable-receiver.png)
+![Unstoppable Receiver](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-receiver.png)
 
-Our goal is to break the Flash Loan functionality from the pool, so it is no longer possible to perform another Flash Loan. Let's start by analizing the `flashLoan`function, to see what we get from there.
 
+### Contracts Highlights
 On the `flashLoan(uint256 borrowAmount)` function we can see that it is required that the `poolBalance` equals the `balanceBefore` value. However, where do these values come from?
 
 ```
@@ -86,7 +94,10 @@ uint256 balanceBefore = damnValuableToken.balanceOf(address(this));
 
 On the other hand, the `poolBalance` value is a contract variable updated every time we call the `depositTokens(uint256 amount)` function.
 
-Does this ring a bell? As you might be realizing, there is a way in which we can make the assertion of balances `false`, which is, sending some tokens to the pool directly by using the token function `transfer` instead of `depositTokens`.
+Does this ring a bell?
+
+### The Hack
+As you might be realizing, there is a way in which we can make the assertion of balances `false`, which is, sending some tokens to the pool directly by using the token function `transfer` instead of `depositTokens`.
 
 If we do this, the assertion won't be no longer true, and it won't be possible to execute any other flashloans, as the variable `poolBalance` won't be updated.
 
@@ -100,8 +111,40 @@ it('Exploit', async function () {
 ```
 Now, run the script with `yarn run unstoppable` and see how we pass the challenge.
 
-![Unstoppable Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/unstoppable-challenge.png)
+![Unstoppable Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-challenge.png)
 
 
 Congrats!!
 
+## Challenge #2: Naive Receiver
+### The Goal
+The Naive Receiver challenge states the following:
+> There's a lending pool offering quite expensive flash loans of Ether, which has 1000 ETH in balance. (...) A user has deployed a contract with 10 ETH in balance, capable of interacting with the lending pool and receiveing flash loans of ETH. 
+
+Our goal is to hack the user's contract and drain all the funds. If we can do it with a single transaction is a bonus.
+
+### Contract Call Graphs
+There are 2 contracts:
+- NaiveReceiverLenderPool.sol
+- FlashLoanReceiver.sol
+
+The contract diagrams generated with the Solidity Visual Auditor extension are the following:
+
+![Naive Receiver Lender Pool](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver.png)
+
+![FlashLoan Receiver](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/flashloan-receiver.png)
+
+### Contracts Highlights
+The flashLoan function accepts 2 arguments, the borrower address and the borrowerAmount. 
+`function flashLoan(address borrower, uint256 borrowAmount)`.
+This means that we can "impersonate" the borrower, by passing its contract address.
+
+Another important aspect is that on the last require we ensure that the pool balance after the flashloan is equal or **greatest** than the initial balance. The greatest part is key, as this will allow the pool to receive more ETH.
+
+### The Hack
+We are going to impersonate the FlashLoanReceiver contract, by passing its address to the flashLoan function, like this:
+`await this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('1'))`
+
+The pool can perform this action 10 times, and this will drain all the receiver's funds (10ETH).
+
+There is a bonus for performing this in a single transaction. For that, we can setup a simple smart contract, that executes the 10x calls above.
