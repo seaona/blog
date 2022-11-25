@@ -84,11 +84,11 @@ There are 2 contracts:
 The contract diagrams generated with the Solidity Visual Auditor extension are the following:
 
 <figure style="display:inline-block; text-align:center">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-lender.png" alt="Unstoppable Lender" width="400"/>
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-lender.png" alt="Unstoppable Lender" width="350"/>
     <figcaption>Unstoppable Lender</figcaption>
 </figure>
 <figure style="display:inline-block; text-align:center;">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-receiver.png" title="Unstoppable Receiver" width="400"/>
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-receiver.png" title="Unstoppable Receiver" width="350"/>
     <figcaption>Unstoppable Receiver</figcaption>
 </figure>
 
@@ -148,11 +148,11 @@ There are 2 contracts:
 The contract diagrams generated with the Solidity Visual Auditor extension are the following:
 
 <figure style="display:inline-block; text-align:center;">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver.png" alt="Naive Receiver Lender Pool" width="400"/>
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver.png" alt="Naive Receiver Lender Pool" width="350"/>
     <figcaption>Naive Receiver Lender Pool</figcaption>
 </figure>
 <figure style="display:inline-block; text-align:center;">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/flashloan-receiver.png" title="FlashLoan Receiver" width="400"/>
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/flashloan-receiver.png" title="FlashLoan Receiver" width="350"/>
     <figcaption>FlashLoan Receiver</figcaption>
 </figure>
 
@@ -187,7 +187,7 @@ There is only 1 simple contract:
 The contract diagram generated with the Solidity Visual Auditor extension are the following:
 
 <figure style="text-align:center;">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/truster-lender-pool.png" title="Truster Lender Pool" width="400"/>
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/truster-lender-pool.png" title="Truster Lender Pool" width="350"/>
     <figcaption>Truster Lender Pool</figcaption>
 </figure>
 
