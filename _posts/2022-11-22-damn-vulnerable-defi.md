@@ -13,15 +13,24 @@ This extension will assist us during the challenges, by providing code insights,
 
 Here is an example of a warning in VSC, highlighting an external call:
 
-![Solidity Visual Developer](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/solidity-visual-dev.png)
+<img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/solidity-visual-dev.png" alt="Solidity Visual Developer" width="500"/>
+
 
 We can also generate visual graphs by utilizing Surya capabilities, embedded in the pluggin. We'll do this for every challenge, so we get a clear overview on the contracts we are hacking and the calls between them.
 
-![Solidity Visual Developer](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/surya-call-graph.png)
+<img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/surya-call-graph.png" alt="Solidity Visual Developer" width="500"/>
+
 
 **Hardhat**
 
 The development environment we'll use is [Hardhat](https://hardhat.org/). It provides us with a rich testing environment which we'll be using for our hacks. It uses [Ethers.js](https://docs.ethers.io/v5/) library for smart contract interaction.
+
+Using console logs in your contracts for debugging:
+```
+import "hardhat/console.sol";
+(...)
+console.log("fdrsw");
+```
 
 **Codebase**
 
@@ -73,10 +82,18 @@ There are 2 contracts:
 - UnstoppableReceiver.sol
 
 The contract diagrams generated with the Solidity Visual Auditor extension are the following:
+<p>
+    <figure style="display:inline-block;">
+        <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-lender.png" alt="Unstoppable Lender" width="300"/>
+        <figcaption>Unstoppable Lender</figcaption>
+    </figure>
+    <figure style="display:inline-block;">
+        <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-receiver.png" title="Unstoppable Receiver" width="300"/>
+        <figcaption>Unstoppable Receiver</figcaption>
+    </figure>
+</p>
 
-![Unstoppable Lender](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-lender.png)
-
-![Unstoppable Receiver](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-receiver.png)
+## Required Knowledge
 
 
 ### Contracts Highlights
@@ -95,6 +112,7 @@ uint256 balanceBefore = damnValuableToken.balanceOf(address(this));
 On the other hand, the `poolBalance` value is a contract variable updated every time we call the `depositTokens(uint256 amount)` function.
 
 Does this ring a bell?
+
 
 ### The Hack
 As you might be realizing, there is a way in which we can make the assertion of balances `false`, which is, sending some tokens to the pool directly by using the token function `transfer` instead of `depositTokens`.
@@ -130,16 +148,24 @@ There are 2 contracts:
 
 The contract diagrams generated with the Solidity Visual Auditor extension are the following:
 
-![Naive Receiver Lender Pool](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver.png)
+<p>
+    <figure style="display:inline-block;">
+        <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver.png" alt="Naive Receiver Lender Pool" width="300"/>
+        <figcaption>Naive Receiver Lender Pool</figcaption>
+    </figure>
+    <figure style="display:inline-block;">
+        <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/flashloan-receiver.png" title="FlashLoan Receiver" width="300"/>
+        <figcaption>Naive Receiver Lender Pool</figcaption>
+    </figure>
+</p>
 
-![FlashLoan Receiver](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/flashloan-receiver.png)
+## Required Knowledge
+- For the bonus: [Smart Contract calling another Smart contract function](https://blog.chain.link/smart-contract-call-another-smart-contract/)
 
 ### Contracts Highlights
 The flashLoan function accepts 2 arguments, the borrower address and the borrowerAmount. 
 `function flashLoan(address borrower, uint256 borrowAmount)`.
 This means that we can "impersonate" the borrower, by passing its contract address.
-
-Another important aspect is that on the last require we ensure that the pool balance after the flashloan is equal or **greatest** than the initial balance. The greatest part is key, as this will allow the pool to receive more ETH.
 
 ### The Hack
 We are going to impersonate the FlashLoanReceiver contract, by passing its address to the flashLoan function, like this:
@@ -150,3 +176,38 @@ The pool can perform this action 10 times, and this will drain all the receiver'
 There is a bonus for performing this in a single transaction. For that, we can setup a simple smart contract, that executes the 10x calls above.
 
 ![Naive Receiver Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver-challenge.png)
+
+
+## Challenge #3: Truster
+### The Goal
+The Truster challenge states the following:
+> A new pool has launched that is offering flash loans of DVT tokens for free. The pool has 1 million DVT tokens in balance. And you have nothing. Take all of them from the pool. In a single transaction.
+
+### Contract Call Graphs
+There is only 1 simple contract:
+- TrusterLenderPool.sol
+
+The contract diagram generated with the Solidity Visual Auditor extension are the following:
+
+![Truster Lender Pool](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/truster-lender-pool.png)
+
+## Required Knowledge
+- [ERC20 token specification](https://eips.ethereum.org/EIPS/eip-20)
+- [External calls](https://consensys.github.io/smart-contract-best-practices/development-recommendations/general/external-calls/#use-caution-when-making-external-calls)
+
+https://ethereum.stackexchange.com/questions/52989/what-is-calldata
+
+
+### Contracts Highlights
+This allows us to call any contract function on the flash loan contract’s behalf which can be exploited. First, we take a flash loan of 0 tokens (such that no repayment is required) and pass the token’s approve function as arguments with a payload that approves our attacker to withdraw all funds in a subsequent transaction. This works because the context under which approve is executed is the flash loan contract because it is the one calling it.
+
+### The Hack
+For the function call, what it happens is the following:
+
+1. Hacker calls hack function from TrusterExploit
+2. TrusterExploit calls flashLoan function from TrusterLenderPool
+3. TrusterLenderPool executes an external call to the TrusterExploit contract with data
+4. This data turns out to approve all its balance to the attacker's address
+
+We will create a contract where we call the `flashLoan` function from the pool, and we will make use of the functionCall for approving
+![Truster Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/truster-challenge.png)
