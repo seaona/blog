@@ -82,16 +82,15 @@ There are 2 contracts:
 - UnstoppableReceiver.sol
 
 The contract diagrams generated with the Solidity Visual Auditor extension are the following:
-<p>
-    <figure style="display:inline-block;">
-        <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-lender.png" alt="Unstoppable Lender" width="300"/>
-        <figcaption>Unstoppable Lender</figcaption>
-    </figure>
-    <figure style="display:inline-block;">
-        <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-receiver.png" title="Unstoppable Receiver" width="300"/>
-        <figcaption>Unstoppable Receiver</figcaption>
-    </figure>
-</p>
+
+<figure style="display:inline-block; text-align:center">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-lender.png" alt="Unstoppable Lender" width="400"/>
+    <figcaption>Unstoppable Lender</figcaption>
+</figure>
+<figure style="display:inline-block; text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-receiver.png" title="Unstoppable Receiver" width="400"/>
+    <figcaption>Unstoppable Receiver</figcaption>
+</figure>
 
 ## Required Knowledge
 
@@ -148,16 +147,14 @@ There are 2 contracts:
 
 The contract diagrams generated with the Solidity Visual Auditor extension are the following:
 
-<p>
-    <figure style="display:inline-block;">
-        <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver.png" alt="Naive Receiver Lender Pool" width="300"/>
-        <figcaption>Naive Receiver Lender Pool</figcaption>
-    </figure>
-    <figure style="display:inline-block;">
-        <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/flashloan-receiver.png" title="FlashLoan Receiver" width="300"/>
-        <figcaption>Naive Receiver Lender Pool</figcaption>
-    </figure>
-</p>
+<figure style="display:inline-block; text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver.png" alt="Naive Receiver Lender Pool" width="400"/>
+    <figcaption>Naive Receiver Lender Pool</figcaption>
+</figure>
+<figure style="display:inline-block; text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/flashloan-receiver.png" title="FlashLoan Receiver" width="400"/>
+    <figcaption>FlashLoan Receiver</figcaption>
+</figure>
 
 ## Required Knowledge
 - For the bonus: [Smart Contract calling another Smart contract function](https://blog.chain.link/smart-contract-call-another-smart-contract/)
@@ -189,7 +186,11 @@ There is only 1 simple contract:
 
 The contract diagram generated with the Solidity Visual Auditor extension are the following:
 
-![Truster Lender Pool](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/truster-lender-pool.png)
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/truster-lender-pool.png" title="Truster Lender Pool" width="400"/>
+    <figcaption>Truster Lender Pool</figcaption>
+</figure>
+
 
 ## Required Knowledge
 - [ERC20 token specification](https://eips.ethereum.org/EIPS/eip-20)
