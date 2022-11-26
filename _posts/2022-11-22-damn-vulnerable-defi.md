@@ -11,15 +11,7 @@ We are going to use Visual Studio Code for taking advantage of one particular VS
 
 This extension will assist us during the challenges, by providing code insights, syntax and semantic highlighting, and visual graphs which represent contracts and interactions.
 
-Here is an example of a warning in VSC, highlighting an external call:
-
-<img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/solidity-visual-dev.png" alt="Solidity Visual Developer" width="500"/>
-
-
 We can also generate visual graphs by utilizing Surya capabilities, embedded in the pluggin. We'll do this for every challenge, so we get a clear overview on the contracts we are hacking and the calls between them.
-
-<img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/surya-call-graph.png" alt="Solidity Visual Developer" width="500"/>
-
 
 **Hardhat**
 
@@ -127,11 +119,6 @@ it('Exploit', async function () {
 ```
 Now, run the script with `yarn run unstoppable` and see how we pass the challenge.
 
-![Unstoppable Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/unstoppable-challenge.png)
-
-
-Congrats!!
-
 ## Challenge #2: Naive Receiver
 ### The Goal
 The Naive Receiver challenge states the following:
@@ -171,9 +158,6 @@ The pool can perform this action 10 times, and this will drain all the receiver'
 
 There is a bonus for performing this in a single transaction. For that, we can setup a simple smart contract, that executes the 10x calls above.
 
-![Naive Receiver Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/naive-receiver-challenge.png)
-
-
 ## Challenge #3: Truster
 ### The Goal
 The Truster challenge states the following:
@@ -209,8 +193,7 @@ For the function call, what it happens is the following:
 3. TrusterLenderPool executes an external call to the TrusterExploit contract with data
 4. This data turns out to approve all its balance to the attacker's address
 
-We will create a contract where we call the `flashLoan` function from the pool, and we will make use of the functionCall for approving
-![Truster Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/truster-challenge.png)
+We will create a contract where we call the `flashLoan` function from the pool, and we will make use of the functionCall for approving.
 
 ## Challenge #4: Side Entrance
 ### The Goal
@@ -223,7 +206,7 @@ Our goal is to take all ETH from the lending pool.
 There is only 1 simple contract:
 - SideEntranceLenderPool.sol
 
-The contract diagram generated with the Solidity Visual Auditor extension are the following:
+The contract diagram generated with the Solidity Visual Auditor extension is the following:
 
 <figure style="text-align:center;">
     <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/side-entrance.png" title="Side Entrance Lender Pool" width="350"/>
@@ -254,3 +237,32 @@ You can see how balances change on each step in the following table.
 | flashLoan(ETHER_IN_POOL)   | 0        | 1000 | 0 |
 | deposit(){value: ETHER_IN_POOL}   | 1000        | 0 | 1000 |
 | withdraw()   | 0        | 1000 | 0 |
+
+
+## Challenge #4: The Rewarder
+### The Goal
+The Rewarder challenge states the following:
+> There's a pool offering rewards in tokens every 5 days for those who deposit their DVT tokens into it. Alice, Bob, Charlie and David have already deposited some DVT tokens, and have won their rewards! You don't have any DVT tokens. Rumours say a new pool has just landed on mainnet. Isn't it offering DVT tokens in flash loans?
+
+Our goal is to claim most rewards for yourself.
+
+### Contract Call Graphs
+There are 4 contracts:
+- AccountingToken.sol
+- FlashLoanerPool.sol
+- RewardToken.sol
+- TheRewarderPool.sol
+
+The contract diagram fro the Rewarder Pool generated with the Solidity Visual Auditor extension is the following:
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/rewarder-pool.png" title="Rewarder Pool" width="350"/>
+    <figcaption>Rewarder Pool</figcaption>
+</figure>
+
+### Required Knowledge
+- [ERC20Snapshot](https://docs.openzeppelin.com/contracts/3.x/api/token/erc20#ERC20Snapshot)
+
+### Contracts Highlights
+
+### The Hack
