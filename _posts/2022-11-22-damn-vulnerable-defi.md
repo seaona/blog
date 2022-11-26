@@ -58,7 +58,6 @@ yarn hardhat test test/*challenge-folder*/*challenge-file*
 ```
 
 ### Setup
-
 For completing the challenges we'll just need to open the challenge scripts on the test folder and include our hack. For validating we simply need to call the script and, voilà!
 
 1. Open a terminal inside the project folder
@@ -92,8 +91,8 @@ The contract diagrams generated with the Solidity Visual Auditor extension are t
     <figcaption>Unstoppable Receiver</figcaption>
 </figure>
 
-## Required Knowledge
-
+### Required Knowledge
+- A basic understanding of [testing with ethers.js](https://hardhat.org/hardhat-runner/docs/other-guides/waffle-testing)
 
 ### Contracts Highlights
 On the `flashLoan(uint256 borrowAmount)` function we can see that it is required that the `poolBalance` equals the `balanceBefore` value. However, where do these values come from?
@@ -156,7 +155,7 @@ The contract diagrams generated with the Solidity Visual Auditor extension are t
     <figcaption>FlashLoan Receiver</figcaption>
 </figure>
 
-## Required Knowledge
+### Required Knowledge
 - For the bonus: [Smart Contract calling another Smart contract function](https://blog.chain.link/smart-contract-call-another-smart-contract/)
 
 ### Contracts Highlights
@@ -192,7 +191,7 @@ The contract diagram generated with the Solidity Visual Auditor extension are th
 </figure>
 
 
-## Required Knowledge
+### Required Knowledge
 - [ERC20 token specification](https://eips.ethereum.org/EIPS/eip-20)
 - [External calls](https://consensys.github.io/smart-contract-best-practices/development-recommendations/general/external-calls/#use-caution-when-making-external-calls)
 
@@ -212,3 +211,46 @@ For the function call, what it happens is the following:
 
 We will create a contract where we call the `flashLoan` function from the pool, and we will make use of the functionCall for approving
 ![Truster Challenge](https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/truster-challenge.png)
+
+## Challenge #4: Side Entrance
+### The Goal
+The Side Entrance challenge states the following:
+> A surprisingly simple lending pool allows anyone to deposit ETH, and withdraw it at any point in time. This very simple lending pool has 1000 ETH in balance already, and is offering free flash loans using the deposited ETH to promote their system.
+
+Our goal is to take all ETH from the lending pool.
+
+### Contract Call Graphs
+There is only 1 simple contract:
+- SideEntranceLenderPool.sol
+
+The contract diagram generated with the Solidity Visual Auditor extension are the following:
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/side-entrance.png" title="Side Entrance Lender Pool" width="350"/>
+    <figcaption>Side Entrance Lender Pool</figcaption>
+</figure>
+
+### Required Knowledge
+- Mapping
+- [Contract interfaces](https://medium.com/coinmonks/solidity-tutorial-all-about-interfaces-f547d2869499)
+
+### Contracts Highlights
+We have 3 functions, for depositing, withdrawing and performing a flashLoan. The contract keeps track of the balances of each user with the mapping `balances`.
+
+Analyzing the flashLoan we can see that it requires that the pool balance is greater or equal than before performing the flashloan.
+We can see that it does not check who are holding these balances...
+
+### The Hack
+We can perfom a flashloan with all the pool balance and utilize the execute function for deposit all the amount into the pool again.
+This effectively means that we don't have to return the flashloan, as the require statement just chceks that the balance of the pool is greater or equal than the previous balance. This condition will hold, as the pool balance would be the same before the flashloan, the only difference is that now, the balances mapping has changed, and all the pool balance is mapped to our address.
+
+The final step is simply to use the withdraw function for taking all the ETH from the pool.
+
+You can see how balances change on each step in the following table.
+
+| Action      | Pool Balance | Attacker Balance | balances[Attacker] |
+| ----------- | ----------- | ----------- | ----------- |
+| Initial state  | 1000       | 0 | 0
+| flashLoan(ETHER_IN_POOL)   | 0        | 1000 | 0 |
+| deposit(){value: ETHER_IN_POOL}   | 1000        | 0 | 1000 |
+| withdraw()   | 0        | 1000 | 0 |
