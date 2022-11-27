@@ -44,7 +44,7 @@ The other relevant folder is called `test`. Inside we'll find again separate fol
 yarn run *challenge-name*
 ```
 
-This command basically uses the hardhat command for running tests. I recommend running the command below, so you start getting more familiar with hardhat commands (if you are not):
+This command essentially uses the hardhat command for running tests:
 ```
 yarn hardhat test test/*challenge-folder*/*challenge-file*
 ```
@@ -58,6 +58,7 @@ For completing the challenges we'll just need to open the challenge scripts on t
 ```
 yarn run unstoppable
 ```
+
 Now you'll see that the script will fail - as we haven't yet started to work on the challenge.
 
 ## Challenge #1: Unstoppable
@@ -84,7 +85,7 @@ The contract diagrams generated with the Solidity Visual Auditor extension are t
 </figure>
 
 ### Required Knowledge
-- A basic understanding of [testing with ethers.js](https://hardhat.org/hardhat-runner/docs/other-guides/waffle-testing)
+- [A basic understand of what are flashloans and how do they work](https://docs.aave.com/developers/guides/flash-loans)
 
 ### Contracts Highlights
 On the `flashLoan(uint256 borrowAmount)` function we can see that it is required that the `poolBalance` equals the `balanceBefore` value. However, where do these values come from?
@@ -151,10 +152,10 @@ The flashLoan function accepts 2 arguments, the borrower address and the borrowe
 This means that we can "impersonate" the borrower, by passing its contract address.
 
 ### The Hack
-We are going to impersonate the FlashLoanReceiver contract, by passing its address to the flashLoan function, like this:
+We are going to impersonate the FlashLoanReceiver contract, by passing its address to the `flashLoan` function, like this:
 `await this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('1'))`
 
-The pool can perform this action 10 times, and this will drain all the receiver's funds (10ETH).
+We can perform this action 10 times and this will drain all the funds (10ETH).
 
 There is a bonus for performing this in a single transaction. For that, we can setup a simple smart contract, that executes the 10x calls above.
 
@@ -234,7 +235,7 @@ This allows us to call any contract function on the flash loan contract’s beha
 For the function call, what it happens is the following:
 
 1. Hacker calls hack function from TrusterExploit
-2. TrusterExploit calls flashLoan function from TrusterLenderPool
+2. TrusterExploit calls `flashLoan` function from TrusterLenderPool
 3. TrusterLenderPool executes an external call to the TrusterExploit contract with data
 4. This data turns out to approve all its balance to the attacker's address
 
@@ -302,7 +303,7 @@ We can see that it does not check who are holding these balances though...
 
 ### The Hack
 We can perfom a flashloan with all the pool balance and utilize the execute function for deposit all the amount into the pool again.
-This effectively means that we don't have to return the flashloan, as the require statement just chceks that the balance of the pool is greater or equal than the previous balance. This condition will hold, as the pool balance would be the same before the flashloan, the only difference is that now, the balances mapping has changed, and all the pool balance is mapped to our address.
+This effectively means that we don't have to return the flashloan, as the require statement just checks that the balance of the pool is greater or equal than the previous balance. This condition will hold, as the pool balance would be the same before the flashloan, the only difference is that now, the balances mapping has changed, and all the pool balance is mapped to our address.
 
 The final step is simply to use the withdraw function for taking all the ETH from the pool.
 
