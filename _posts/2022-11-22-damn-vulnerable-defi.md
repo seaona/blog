@@ -383,13 +383,14 @@ There are 4 contracts:
 
 The contract diagram fro the Rewarder Pool generated with the Solidity Visual Auditor extension is the following:
 
-<figure style="">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/rewarder-pool.png" title="Rewarder Pool" width="350"/>
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/rewarder-pool.png" title="Rewarder Pool" width="750"/>
     <figcaption>Rewarder Pool</figcaption>
 </figure>
 
 ### Required Knowledge
 - [ERC20Snapshot](https://docs.openzeppelin.com/contracts/3.x/api/token/erc20#ERC20Snapshot)
+- [Access control and Role setup](https://docs.openzeppelin.com/contracts/4.x/api/access#AccessControl-_setupRole-bytes32-address-)
 
 ### Contracts Highlights
 
