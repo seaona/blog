@@ -382,7 +382,7 @@ There are 4 contracts:
 - RewardToken.sol
 - TheRewarderPool.sol
 
-The contract diagram fro the Rewarder Pool generated with the Solidity Visual Auditor extension is the following:
+The contract diagram for the Rewarder Pool generated with the Solidity Visual Auditor extension is the following:
 
 <figure style="text-align:center;">
     <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/rewarder-pool.png" title="Rewarder Pool" width="750"/>
@@ -392,6 +392,38 @@ The contract diagram fro the Rewarder Pool generated with the Solidity Visual Au
 ### Required Knowledge
 - [ERC20Snapshot](https://docs.openzeppelin.com/contracts/3.x/api/token/erc20#ERC20Snapshot)
 - [Access control and Role setup](https://docs.openzeppelin.com/contracts/4.x/api/access#AccessControl-_setupRole-bytes32-address-)
+
+### Contracts Highlights
+
+### The Hack
+Make a flash loan to get some DVT tokens.
+Approve and deposit the tokens to the rewarder pool. This will immediately call the snapshot function and send rewards.
+Previously we have to advance the hardhat vlokchain for 5 days.
+
+
+## Challenge #6: Selfie
+### The Goal
+The Rewarder challenge states the following:
+> A new cool lending pool has launched! It's now offering flash loans of DVT tokens. Wow, and it even includes a really fancy governance mechanism to control it.
+You start with no DVT tokens in balance, and the pool has 1.5 million.
+
+Our goal is to take all DVT tokens.
+
+### Contract Call Graphs
+There are 2 contracts:
+- SelfiePool.sol
+- SimpleGovernance.sol
+
+The contract diagram for the Selfie Pool generated with the Solidity Visual Auditor extension is the following:
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/selfie-pool.png" title="Selfie Pool" width="750"/>
+    <figcaption>Selfie Pool</figcaption>
+</figure>
+
+
+
+### Required Knowledge
 
 ### Contracts Highlights
 

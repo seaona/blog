@@ -21,7 +21,7 @@ To solve this challenge, we need to first call the function `contribute`, so our
 
 Then we can claim ownership by sending some ETH directly to the contract address:
 
-`await sendTransaction({from: player, to:contract.address, value: toWei("0.000000001")});`
+`await web3.eth.sendTransaction({from: player, to:contract.address, value: toWei("0.000000001")});`
 
 Finally we can withdraw the funds using the contract function:
 
@@ -47,3 +47,15 @@ This explains why it was not called on the contract deployement.
 So what we can do to solve the challenge is to call the intended `constructor` function with some value, and we we'll be assigned as the contract owners.
 
 `await contract.Fal1out({value: toWei("0.0001")})`
+
+
+## Challenge #3: Coin Flip
+In 0.8.0 or better, math overflows revert by default.
+
+block.number refers to the current block number (the one the transaction is oart of). So the blockvalue is already guessable, by going to the etherscan.
+
+Then we can calculate the coinFlip ourselves with the function:
+
+`uint256 coinFlip = blockValue / FACTOR;`
+
+web3.eth.getBlock(blockNumber).hash;
