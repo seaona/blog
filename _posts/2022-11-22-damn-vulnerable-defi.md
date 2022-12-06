@@ -417,14 +417,66 @@ There are 2 contracts:
 The contract diagram for the Selfie Pool generated with the Solidity Visual Auditor extension is the following:
 
 <figure style="text-align:center;">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/selfie-pool.png" title="Selfie Pool" width="750"/>
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/selfie-pool.png" title="Selfie Pool" width="350"/>
     <figcaption>Selfie Pool</figcaption>
 </figure>
 
 
-
 ### Required Knowledge
+- [Encode with signature](https://ethereum.stackexchange.com/questions/91826/why-are-there-two-methods-encoding-arguments-abi-encode-and-abi-encodepacked)
+- [Snapshot](https://docs.openzeppelin.com/contracts/3.x/api/token/erc20#ERC20Snapshot)
+- [EVM increase time](https://ethereum.stackexchange.com/questions/86633/time-dependent-tests-with-hardhat)
 
 ### Contracts Highlights
+- SelfiePool provides a function for executing flash loans. We could use this function to get tokens.
+
+- SelfiePool has a method for draining all its funds. It uses a modifier which enforces that only the Governance token can call this function. It seems that this is the function we need for getting all the tokens from the contract. This means we would need to hack the Governance contract in order to call this function.
+
+- SimpleGovernance allows to execute actions, which can call other contract functions. It seems that this is precisely what we need for calling the `drainAllFunds` function from the SelfiePool.
+
+
+### The Hack
+We need to queue the action with the malicious payload in order to call the `drainAllFunds` function. The only requirement is to have enough tokens - which we'll do, when we perform the flashLoan. The attack sequence is the following:
+
+1. Get tokens from the pool, using the flashLoan function
+2. Queue our action for draining all the funds, from the governance contract. This will be possible as we'll have enough tokens in our balance.
+3. Once the action has been queued, we can return the flashLoan.
+4. Now we can increase the evm time, to make sure we can execute the action, satisfying the delay required by the executeAction function
+5. Finally we can call the `executeAction` function, which will drain all the pool funds.
+
+
+## Challenge #7: Compromised
+### The Goal
+The Compromised challenge states the following:
+> While poking around a web service of one of the most popular DeFi projects in the space, you get a somewhat strange response from their server. This is a snippet
+
+```
+HTTP/2 200 OK
+content-type: text/html
+content-language: en
+vary: Accept-Encoding
+server: cloudflare
+
+4d 48 68 6a 4e 6a 63 34 5a 57 59 78 59 57 45 30 4e 54 5a 6b 59 54 59 31 59 7a 5a 6d 59 7a 55 34 4e 6a 46 6b 4e 44 51 34 4f 54 4a 6a 5a 47 5a 68 59 7a 42 6a 4e 6d 4d 34 59 7a 49 31 4e 6a 42 69 5a 6a 42 6a 4f 57 5a 69 59 32 52 68 5a 54 4a 6d 4e 44 63 7a 4e 57 45 35
+
+4d 48 67 79 4d 44 67 79 4e 44 4a 6a 4e 44 42 68 59 32 52 6d 59 54 6c 6c 5a 44 67 34 4f 57 55 32 4f 44 56 6a 4d 6a 4d 31 4e 44 64 68 59 32 4a 6c 5a 44 6c 69 5a 57 5a 6a 4e 6a 41 7a 4e 7a 46 6c 4f 54 67 33 4e 57 5a 69 59 32 51 33 4d 7a 59 7a 4e 44 42 69 59 6a 51 34
+```
+
+> A related on-chain exchange is selling (absurdly overpriced) collectibles called "DVNFT", now at 999 ETH each. 
+This price is fetched from an on-chain oracle, and is based on three trusted reporters: 
+- `0xA73209FB1a42495120166736362A1DfA9F95A105`
+- `0xe92401A4d3af5E446d93D11EEc806b1462b39D15`
+- `0x81A5D6E50C214044bE44cA0CB057fe119097850c`
+
+Our goal is to steal all ETH available in the exchange, starting with 0.1 ETH.
+
+### Contract Call Graphs
+
+
+### Required Knowledge
+- [Attach method from ethers.js](https://stackoverflow.com/questions/72820081/what-does-the-attach-method-do-in-ethers-js)
+### Contracts Highlights
+
+
 
 ### The Hack
