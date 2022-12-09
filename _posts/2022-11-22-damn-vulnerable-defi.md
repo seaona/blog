@@ -550,12 +550,41 @@ There's a DVT market opened in an Uniswap v1 exchange, currently with 10 ETH and
 Our goal is to steal all the tokens from the lending pool, starting with 25ETH and 1000 DVTs in balance.
 
 ### Contract Call Graphs
+There is 1 contract and 2 abis:
+- PuppetPool.sol
+- UniswapV1Factory.json
+- UniswapV1Exchange.json
 
+The contract diagram for the Puppet Pool generated with the Solidity Visual Auditor extension is the following:
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/puppet.png" title="PuppetPool" width="500"/>
+    <figcaption>Puppet Pool</figcaption>
+</figure>
 
 ### Required Knowledge
+- [How DEX's work? Understanding Uniswap V1](https://dev.to/learnweb3/how-do-dexs-work-understand-uniswap-v1-by-deep-diving-into-the-math-and-code-learn-the-xyk-amm-curve-46hb)
 
 ### Contracts Highlights
+The Puupet Pool allows us to borrow tokens, by depositing a collateral of ETH, whose amount doubles the borrow amount.
 
+We can see that for computing the price of the token, it uses the follwing formula:
 
+```
+ function _computeOraclePrice() private view returns (uint256) {
+    // calculates the price of the token in wei according to Uniswap pair
+    return uniswapPair.balance * (10 ** 18) / token.balanceOf(uniswapPair);
+}
+```
+
+We can quickly realise that if we make the denominator greater than the numerator, we would obtain a price of 0, which would in turn, make that the deposit required as collateral be 0, and allow us to borrow all the tokens, with few collateral.
+
+```
+  function calculateDepositRequired(uint256 amount) public view returns (uint256) {
+    return amount * _computeOraclePrice() * 2 / 10 ** 18;
+}
+```
 
 ### The Hack
+We can use the `tokenToEthSwapInput` to send some tokens to the DEX and receive ETH in return, making the ETH balance in the pool smaller.
+Then we can call the `borrow` function for getting all the tokens of the pool with few collateral.
