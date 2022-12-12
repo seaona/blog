@@ -609,7 +609,7 @@ The contract diagram for the Puppet V2 Pool generated with the Solidity Visual A
 </figure>
 
 ### Required Knowledge
-- (Uniswap V2)[https://medium.com/@chiqing/uniswap-v2-explained-beginner-friendly-b5d2cb64fe0f#:~:text=Uniswap%20V2%20allows%20traders%20to,is%20called%20%E2%80%9CLiquidity%20Pool%E2%80%9D.]
+- [Uniswap V2](https://medium.com/@chiqing/uniswap-v2-explained-beginner-friendly-b5d2cb64fe0f#:~:text=Uniswap%20V2%20allows%20traders%20to,is%20called%20%E2%80%9CLiquidity%20Pool%E2%80%9D.)
 
 ### Contracts Highlights
 In the lending pool contract we see 3 functions:
@@ -619,9 +619,9 @@ In the lending pool contract we see 3 functions:
 
 In the same way as in the previous challenge, we can observe the formula for getting the quote is:
 ```
-               amountTokenA * reserveTokenB           DVTTokenAmount * WETHReserve
-quote =     ---------------------------------   =   ---------------------------------
-                    reserveTokenA                           DVTReserve
+        amountTokenA * reserveTokenB       DVTTokenAmount * WETHReserve
+quote = ------------------------------ =  --------------------------------
+             reserveTokenA                           DVTReserve
 ```
 
 
