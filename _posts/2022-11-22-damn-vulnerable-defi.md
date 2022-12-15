@@ -668,3 +668,90 @@ await this.weth.connect(attacker).approve(this.lendingPool.address, collateral);
 ```
 await this.lendingPool.connect(attacker).borrow(POOL_INITIAL_TOKEN_BALANCE);
 ```
+
+## Challenge #10: Free Rider
+### The Goal
+The Free Rider challenge states the following:
+> A new marketplace of Damn Valuable NFTs has been released! There's been an initial mint of 6 NFTs, which are available for sale in the marketplace. Each one at 15 ETH. A buyer has shared with you a secret alpha: the marketplace is vulnerable and all tokens can be taken. Yet the buyer doesn't know how to do it. So it's offering a payout of 45 ETH for whoever is willing to take the NFTs out and send them their way. Sadly you only have 0.5 ETH in balance. If only there was a place where you could get free ETH, at least for an instant.
+
+Our goal is to steal all the tokens.
+
+### Contract Call Graphs
+There are 2 contracts :
+- FreeRiderNFTMarketplace.sol
+- FreeRiderBuyer.sol
+
+The contract diagram for theFreRiderNFTMarketpalce generated with the Solidity Visual Auditor extension is the following:
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/free-rider-marketplace.png" title="FreeRider" width="350"/>
+    <figcaption>Free Rider Marketplace</figcaption>
+</figure>
+
+### Required Knowledge
+- [EIP721](https://eips.ethereum.org/EIPS/eip-721)
+- [Uniswap V2. Flash Swaps](https://docs.uniswap.org/contracts/v2/guides/smart-contract-integration/using-flash-swaps)
+- [Flash Swap Example](https://github.com/Uniswap/v2-periphery/blob/master/contracts/examples/ExampleFlashSwap.sol)
+- [Function Selector](https://ethereum.stackexchange.com/questions/72687/explanation-of-appending-selector-in-solidity-smart-contracts)
+
+### Contracts Highlights
+On the `_buyOne` function we can see that it checks the `msg.value` is greater than the price for that specific token.
+
+There is a problem with this peice of code, as the `msg.value` will be always the same. This means that we can buy 6 NFTs for the price of 1.
+
+```
+function buyMany(uint256[] calldata tokenIds) external payable nonReentrant {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+        _buyOne(tokenIds[i]);
+    }
+    }
+
+function _buyOne(uint256 tokenId) private {       
+    uint256 priceToPay = offers[tokenId];
+    console.log("value", msg.value);
+    require(msg.value >= priceToPay, "Amount paid is not enough");
+
+```
+After running the function for buying 5 NFTs with the price of 15ETH with a `console.log` we can see that the `msg.value` is always the same and we succeed to buy 5 for the price of 1.
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/free-rider-amount.png" title="FreeRider" width="350"/>
+    <figcaption>Free Rider Amount</figcaption>
+</figure>
+
+
+Another vulnerability in the marketplace contract will cause that all the 90ETH is drained and payed to our attacker function, meaning that the final result would be to receive the 45ETH from the reward plus the 90ETH from the marketplace contract. Let's look at this code inside the function `_buyOne`:
+
+```
+// transfer from seller to buyer
+token.safeTransferFrom(token.ownerOf(tokenId), msg.sender, tokenId);
+
+// pay seller
+console.log("owner", token.ownerOf(tokenId));
+payable(token.ownerOf(tokenId)).sendValue(priceToPay);
+```
+
+As you can see, when we buy one NFT, this is **first** transferred and **after**, the contract pays from its own balance the price of the token to the token owner, which is already the new owner! This means that every time we buy one NFT, we will be payed 15ETH from the marketplace balance.
+
+### The Hack
+We need to get 15 ETH from Uniswap pool, so then we can buy all 5 NFTs for the price of 1.
+For doing so, we need to take advantage of the flash Swap functionality of Uniswap and pay it back with the amount we receive from the reward from the FreeRiderBuyer contract.
+The process is the following:
+
+1. Use the Flash Swap function to get 15WETH
+2. Unwrap the WETH to get ETH
+3. Call the `buyMany`function to buy all the NFTs with a value of 15ETH (that's all we need). In parallel, we will receive 15ETH each time, from the market funds.
+4. Wrap ETH back to WETH and return the flash swap + fees
+5. Send the NFTs to the buyer, to receive the extra reward of 45ETH
+
+
+## Challenge #11: Backdoor
+### The Goal
+
+### Contract Call Graphs
+
+### Required Knowledge
+
+### Contracts Highlights
+
+### The Hack
