@@ -484,7 +484,7 @@ The contract diagram for the Exchange and TrustfulOracle generated with the Soli
 </figure>
 
 <figure style="display:inline-block; text-align:center;">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/exchange.png" title="Exchange" width="350"/>
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/exchange.png" title="Exchange" width="450"/>
     <figcaption>Exchange</figcaption>
 </figure>
 
