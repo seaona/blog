@@ -747,11 +747,46 @@ The process is the following:
 
 ## Challenge #11: Backdoor
 ### The Goal
+The Backdoor challenge states the following:
+> To incentivize the creation of more secure wallets in their team, someone has deployed a registry of Gnosis Safe wallets. When someone in the team deploys and registers a wallet, they will earn 10 DVT tokens. To make sure everything is safe and sound, the registry tightly integrates with the legitimate Gnosis Safe Proxy Factory, and has some additional safety checks. Currently there are four people registered as beneficiaries: Alice, Bob, Charlie and David. The registry has 40 DVT tokens in balance to be distributed among them.
+
+Our goal is to take all funds from the registry. In a single transaction.
 
 ### Contract Call Graphs
+There is one contract:
+- WalletRegistry.sol
+
+The contract diagram for WalletRegistry generated with the Solidity Visual Auditor extension is the following:
+
+<figure style="text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/backdoor.png" title="WalletRegistry" width="350"/>
+    <figcaption>Wallet Registry</figcaption>
+</figure>
 
 ### Required Knowledge
+- [Gnosis Safe](https://docs.gnosis-safe.io/)
+- [Backdooring Gnosis Safe Multisig wallets](https://blog.openzeppelin.com/backdooring-gnosis-safe-multisig-wallets/)
 
 ### Contracts Highlights
-
-### The Hack
+On the `proxyCreated` function we can see that after different requirements, the tokens are sent to the `walletAddress`: `token.transfer(walletAddress, TOKEN_PAYMENT);`.
+Let's figure out what's the `walletAddress`. Several lines above we can see that it refers to `address payable walletAddress = payable(proxy);`. That is an instance of the `GnosisSafeProxy`.
+Is there a way to make the proxy address point to our contract?
+Let's continue by investigating the instance. The function `createProxyWithCallback` in the `GnosisSafeProxyFactory.sol` does the following:
+```    
+/// @dev Allows to create new proxy contact, execute a message call to the new proxy and call a specified callback within one transaction
+    /// @param _singleton Address of singleton contract.
+    /// @param initializer Payload for message call sent to new proxy contract.
+    /// @param saltNonce Nonce that will be used to generate the salt to calculate the address of the new proxy contract.
+    /// @param callback Callback that will be invoced after the new proxy contract has been successfully deployed and initialized.
+    function createProxyWithCallback(
+        address _singleton,
+        bytes memory initializer,
+        uint256 saltNonce,
+        IProxyCreationCallback callback
+    ) public returns (GnosisSafeProxy proxy) {
+        uint256 saltNonceWithCallback = uint256(keccak256(abi.encodePacked(saltNonce, callback)));
+        proxy = createProxyWithNonce(_singleton, initializer, saltNonceWithCallback);
+        if (address(callback) != address(0)) callback.proxyCreated(proxy, _singleton, initializer, saltNonce);
+    }
+```
+This function will calculate the proxy by calling the `createProxyWithNonce`function.
