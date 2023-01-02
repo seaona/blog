@@ -478,12 +478,12 @@ There are 3 contracts:
 
 The contract diagram for the Exhange and TrustfulOracle generated with the Solidity Visual Auditor extension are the following:
 
-<figure style="text-align:center;">
-    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/trustful-oracle.png" title="TrustfulOracle" width="500"/>
+<figure style="display:inline-block; text-align:center;">
+    <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/trustful-oracle.png" title="TrustfulOracle" width="350"/>
     <figcaption>Trustful Oracle</figcaption>
 </figure>
 
-<figure style="text-align:center;">
+<figure style="display:inline-block; text-align:center;">
     <img src="https://raw.githubusercontent.com/seaona/blog/main/_media/damn-vulnerable-defi/trustful-oracle.png" title="Exchange" width="350"/>
     <figcaption>Exchange</figcaption>
 </figure>
